@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ParkPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .login-form {
+            padding: 40px;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .register-link a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        .brand-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="login-container">
+                    <!-- Header -->
+                    <div class="login-header">
+                        <div class="brand-icon">🅿️</div>
+                        <h2 class="mb-0">Welcome Back!</h2>
+                        <p class="mb-0">Sign in to ParkPro</p>
+                    </div>
+                    <div class="login-form">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="mb-4">
+                                    {% for category, message in messages %}
+                                        {% if category == 'danger' %}
+                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        {% elif category == 'success' %}
+                                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        {% elif category == 'info' %}
+                                            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                                <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                                <i class="bi bi-exclamation-circle-fill me-2"></i>{{ message }}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{url_for('login')}}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-2"></i>Email Address
+                                </label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder="Enter your email"
+                                       required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock me-2"></i>Password
+                                </label>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       placeholder="Enter your password"
+                                       required>
+                            </div>
+                            <button type="submit" class="btn btn-login">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            </button>
+                        </form>
+                        <div class="register-link">
+                            <p class="mb-0">Don't have an account? 
+                                <a href="{{url_for('register')}}">Create one here</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

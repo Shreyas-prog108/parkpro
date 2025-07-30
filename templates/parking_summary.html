@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Summary</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007bff;
+        }
+        #lotSummaryChart {
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Navigation -->
+        <nav class="mb-4">
+            <a href="{{url_for('admin_dash.dash')}}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{{url_for('admin_dash.view_users')}}" class="btn btn-outline-secondary me-2">
+                View Users
+            </a>
+            <a href="{{url_for('logout')}}" class="btn btn-outline-danger">
+                Logout
+            </a>
+        </nav>
+
+        <!-- Header -->
+        <div class="header text-center">
+            <h1 class="display-5 fw-bold mb-3">Parking Summary</h1>
+            <p class="lead mb-0">Overview of all parking lots and their current status</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number">{{lot_data|length}}</div>
+                        <h5 class="card-title text-muted">Total Lots</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-primary">{{lot_data|sum(attribute='total_spots')}}</div>
+                        <h5 class="card-title text-muted">Total Spots</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-success">{{lot_data|sum(attribute='available_spots')}}</div>
+                        <h5 class="card-title text-muted">Available</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-danger">{{lot_data|sum(attribute='total_spots') - lot_data|sum(attribute='available_spots')}}</div>
+                        <h5 class="card-title text-muted">Occupied</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-success">₹{{lot_data|sum(attribute='earnings')|round(2)}}</div>
+                        <h5 class="card-title text-muted">Total Earnings</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-warning">{{earnings_data|length}}</div>
+                        <h5 class="card-title text-muted">Earning Locations</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="summary-number text-info">
+                            {% if earnings_data|length > 0 %}
+                                ₹{{(lot_data|sum(attribute='earnings') / earnings_data|length)|round(2)}}
+                            {% else %}
+                                ₹0
+                            {% endif %}
+                        </div>
+                        <h5 class="card-title text-muted">Avg per Location</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if earnings_data|length > 0 %}
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Earnings Distribution by Parking Lots</h4>
+                <span class="badge bg-success fs-6">₹{{lot_data|sum(attribute='earnings')|round(2)}} Total</span>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <canvas id="earningsChart" style="max-height: 400px;"></canvas>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="bi bi-currency-rupee me-2"></i>Earnings Breakdown</h6>
+                        </div>
+                        <div class="card-body">
+                            {% for item in earnings_data %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">{{item.name}}</span>
+                                <span class="badge bg-success">₹{{item.earnings|round(2)}}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Parking Lot Status Overview</h4>
+                <span class="badge bg-primary fs-6">{{lot_data|length}} Locations</span>
+            </div>
+            <canvas id="lotSummaryChart"></canvas>
+        </div>
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Parking Lot Details</h4>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Lot Name</th>
+                            <th scope="col">Total Spots</th>
+                            <th scope="col">Available</th>
+                            <th scope="col">Occupied</th>
+                            <th scope="col">Earnings</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in lot_data %}
+                        <tr>
+                            <td>
+                                <strong>{{data.lot.prime_location_name}}</strong>
+                                <br><small class="text-muted">{{data.lot.address}}</small>
+                            </td>
+                            <td><span>{{data.total_spots}}</span></td>
+                            <td><span>{{data.available_spots}}</span></td>
+                            <td><span>{{data.total_spots - data.available_spots}}</span></td>
+                            <td><span>₹{{data.earnings|round(2)}}</span></td>
+                            <td>
+                                <a href="{{url_for('admin_dash.view_lot_spots', lot_id=data.lot.id)}}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i> View Spots
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if lot_data|length == 0 %}
+            <div class="text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-building fs-1"></i>
+                    <h5 class="mt-3">No Parking Lots Found</h5>
+                    <p>There are currently no parking lots in the system.</p>
+                    <a href="{{url_for('admin_dash.create_lot')}}" class="btn btn-primary">
+                        <i class="bi bi-plus"></i> Create First Lot
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>    
+    <script>
+        {% if earnings_data|length > 0 %}
+        var earningsData = {{earnings_json|safe}};
+        
+        var earningsCtx = document.getElementById('earningsChart').getContext('2d');
+        var earningsChart = new Chart(earningsCtx, {
+            type: 'pie',
+            data: {
+                labels: earningsData.map(item => item.name),
+                datasets: [{
+                    data: earningsData.map(item => item.earnings),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB', 
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40',
+                        '#FF6384',
+                        '#C9CBCF',
+                        '#4BC0C0',
+                        '#FF6384'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Earnings Distribution by Parking Lots',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.parsed;
+                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                var percentage = ((value / total) * 100).toFixed(1);
+                                return label + ': ₹' + value.toFixed(2) + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+        var ctx = document.getElementById('lotSummaryChart').getContext('2d');
+        var lotSummaryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for data in lot_data %}'{{data.lot.prime_location_name}}',{% endfor %}],
+                datasets: [{
+                    label: 'Available Spots',
+                    data: [{% for data in lot_data %}{{data.available_spots}},{% endfor %}],
+                    backgroundColor: '#28a745',
+                    borderColor: '#1e7e34',
+                    borderWidth: 1
+                }, {
+                    label: 'Total Spots',
+                    data: [{% for data in lot_data %}{{data.total_spots}},{% endfor %}],
+                    backgroundColor: '#007bff',
+                    borderColor: '#0056b3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Parking Lot Capacity Overview'
+                    },
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Spots'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Parking Lots'
+                        }
+                    }
+                }
+            }
+        });
+
+        function refreshData() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

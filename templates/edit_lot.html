@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Parking Lot - Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-floating {
+            margin-bottom: 20px;
+        }
+        .btn-custom {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .lot-info-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-left: 4px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .current-value {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Navigation -->
+        <nav class="mb-4">
+            <a href="{{url_for('admin_dash.dash')}}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-bar-chart"></i> Summary
+            </a>
+            <a href="{{url_for('admin_dash.view_lot_spots', lot_id=lot.id)}}" class="btn btn-outline-info me-2">
+                <i class="bi bi-eye"></i> View Spots
+            </a>
+            <a href="{{url_for('logout')}}" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+
+        <!-- Header -->
+        <div class="header text-center">
+            <h1 class="display-6 fw-bold mb-3">
+                <i class="bi bi-pencil-square me-3"></i>Edit Parking Lot
+            </h1>
+            <p class="lead mb-0">Update details for <strong>{{lot.prime_location_name}}</strong></p>
+        </div>
+
+        <!-- Current Lot Information -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div class="lot-info-card">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-building fs-3 text-success"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Current Spots</h6>
+                            <h4 class="text-success mb-0">{{lot.number_of_spots}}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-currency-rupee fs-3 text-warning"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Hourly Rate</h6>
+                            <h4 class="text-warning mb-0">₹{{lot.price_per_hour}}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-geo-alt fs-3 text-info"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">PIN Code</h6>
+                            <h4 class="text-info mb-0">{{lot.pin_code}}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-2">
+                                <i class="bi bi-calendar-check fs-3 text-primary"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Status</h6>
+                            <h4 class="text-primary mb-0">Active</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Container -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <h4 class="text-success">
+                            <i class="bi bi-gear-fill me-2"></i>Update Parking Lot Details
+                        </h4>
+                        <p class="text-muted">Modify the information below to update the parking lot</p>
+                    </div>
+
+                    <form method="POST" action="{{url_for('admin_dash.edit_lot', lot_id=lot.id)}}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{lot.prime_location_name}}" placeholder="Enter lot name" required>
+                                    <label for="name">
+                                        <i class="bi bi-building me-2"></i>Parking Lot Name
+                                    </label>
+                                </div>
+                                <div class="current-value">
+                                    Current: {{lot.prime_location_name}}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="price_per_hour" 
+                                           name="price_per_hour" value="{{lot.price_per_hour}}" 
+                                           step="0.01" placeholder="0.00" required>
+                                    <label for="price_per_hour">
+                                        <i class="bi bi-currency-rupee me-2"></i>Price per Hour (₹)
+                                    </label>
+                                </div>
+                                <div class="current-value">
+                                    Current: ₹{{lot.price_per_hour}}/hour
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="address" name="address" 
+                                              style="height: 100px" placeholder="Enter address" required>{{lot.address}}</textarea>
+                                    <label for="address">
+                                        <i class="bi bi-geo-alt me-2"></i>Address
+                                    </label>
+                                </div>
+                                <div class="current-value">
+                                    Current: {{lot.address}}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="pin_code" name="pin_code" 
+                                           value="{{lot.pin_code}}" placeholder="123456" required maxlength="6">
+                                    <label for="pin_code">
+                                        <i class="bi bi-mailbox me-2"></i>PIN Code
+                                    </label>
+                                </div>
+                                <div class="current-value">
+                                    Current: {{lot.pin_code}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 mx-auto">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="max_spots" name="max_spots" 
+                                           value="{{lot.number_of_spots}}" required min="1" max="500" placeholder="50">
+                                    <label for="max_spots">
+                                        <i class="bi bi-grid-3x3-gap me-2"></i>Maximum Parking Spots
+                                    </label>
+                                </div>
+                                <div class="current-value">
+                                    Current: {{lot.number_of_spots}} spots
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                    <small>Changing spot count may affect existing reservations</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-success btn-custom me-3">
+                                    <i class="bi bi-check-circle me-2"></i>Update Parking Lot
+                                </button>
+                                <a href="{{url_for('admin_dash.dash')}}" class="btn btn-outline-secondary btn-custom">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel Changes
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-8">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Danger Zone
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-danger mb-1">Delete Parking Lot</h6>
+                                <p class="text-muted mb-0 small">
+                                    Permanently delete this parking lot and all associated data. This action cannot be undone.
+                                </p>
+                            </div>
+                            <form method="POST" action="{{url_for('admin_dash.delete_lot', lot_id=lot.id)}}" 
+                                  onsubmit="return confirm('Are you absolutely sure you want to delete {{lot.prime_location_name}}? This action cannot be undone and will remove all associated reservations.');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash3 me-1"></i>Delete Lot
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Footer -->
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="bi bi-lightning me-2"></i>Quick Actions
+                        </h6>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="{{url_for('admin_dash.view_lot_spots', lot_id=lot.id)}}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-eye"></i> View All Spots
+                            </a>
+                            <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-bar-chart"></i> Summary
+                            </a>
+                            <a href="{{url_for('admin_dash.dash')}}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Format price input
+            const priceInput = document.getElementById('price_per_hour');
+            priceInput.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    this.value = parseFloat(this.value).toFixed(2);
+                }
+            });
+
+            // Validate PIN code
+            const pinInput = document.getElementById('pin_code');
+            pinInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // Warn about spot changes
+            const spotsInput = document.getElementById('max_spots');
+            const originalSpots = {{lot.number_of_spots}};
+            spotsInput.addEventListener('change', function() {
+                const newSpots = parseInt(this.value);
+                if (newSpots !== originalSpots) {
+                    if (newSpots < originalSpots) {
+                        alert('Warning: Reducing the number of spots may affect existing reservations.');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

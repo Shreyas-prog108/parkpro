@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ParkPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007bff;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .action-buttons .btn {
+            white-space: nowrap;
+            min-width: 70px;
+        }
+                .lot-name {
+            font-weight: 600;
+            color: #495057;
+        }
+        .price-badge {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+ 
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <nav class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="{{url_for('admin_dash.dash')}}" class="btn btn-primary me-2">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{{url_for('admin_dash.view_users')}}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                    <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-bar-chart"></i> Summary
+                    </a>
+                </div>
+                <a href="{{url_for('logout')}}" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </nav>
+        <div class="header text-center">
+            <h1 class="display-5 fw-bold mb-3">
+                <i class="bi bi-shield-check me-3"></i>Welcome, Parking Master!
+            </h1>
+            <p class="lead mb-0">Manage your parking empire with ease</p>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-8 mx-auto">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-search me-2"></i>Quick Spot Search
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="spotSearchForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="searchSpotId" class="form-label">Search by Spot ID</label>
+                                    <input type="number" class="form-control" id="searchSpotId" 
+                                           placeholder="Enter spot ID (e.g., 1, 2, 3...)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="searchLotName" class="form-label">Or Search by Parking Lot</label>
+                                    <select class="form-select" id="searchLotName">
+                                        <option value="">Select a parking lot</option>
+                                        {% for data in lot_data %}
+                                        <option value="{{data.lot.id}}">{{data.lot.prime_location_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="bi bi-search me-1"></i>Search Spot
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearSearch()">
+                                        <i class="bi bi-x-circle me-1"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="searchResults" class="mt-4" style="display: none;">
+                            <hr>
+                            <h6 class="mb-3">
+                                <i class="bi bi-list-ul me-2"></i>Search Results
+                            </h6>
+                            <div id="searchResultsContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number">{{lot_data|length}}</div>
+                    <h5 class="text-muted mb-0">Total Parking Lots</h5>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-primary">{{lot_data|sum(attribute='total_spots')}}</div>
+                    <h5 class="text-muted mb-0">Total Parking Spots</h5>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-success">{{lot_data|sum(attribute='available_spots')}}</div>
+                    <h5 class="text-muted mb-0">Available Spots</h5>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-danger">{{lot_data|sum(attribute='total_spots') - lot_data|sum(attribute='available_spots')}}</div>
+                    <h5 class="text-muted mb-0">Occupied Spots</h5>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">
+                    <i class="bi bi-building me-2"></i>Parking Lot Management
+                </h4>
+                <a href="{{url_for('admin_dash.create_lot')}}" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Parking Lot
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">
+                                <i class="bi bi-building me-2"></i>Parking Lot
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-geo-alt me-2"></i>Location
+                            </th>
+                            <th scope="col">
+                                <i class="bi bi-currency-rupee me-2"></i>Price/Hour
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i class="bi bi-check-circle me-2"></i>Available
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i class="bi bi-collection me-2"></i>Total
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i class="bi bi-gear me-2"></i>Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in lot_data %}
+                        <tr>
+                            <td>
+                                <div class="lot-name">{{data.lot.prime_location_name}}</div>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="bi bi-geo-alt text-muted me-1"></i>
+                                    {{data.lot.address}}
+                                </div>
+                                <small class="text-muted">PIN: {{data.lot.pin_code}}</small>
+                            </td>
+                            <td>
+                                <span>
+                                    ₹{{data.lot.price_per_hour}}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span>{{data.available_spots}}</span>
+                            </td>
+                            <td class="text-center">
+                                <span>{{data.total_spots}}</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{url_for('admin_dash.view_lot_spots', lot_id=data.lot.id)}}" 
+                                       class="btn btn-info btn-sm me-1 mb-1" title="View Spots">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                    <a href="{{url_for('admin_dash.edit_lot', lot_id=data.lot.id)}}" 
+                                       class="btn btn-warning btn-sm me-1 mb-1" title="Edit Lot">
+                                        <i class="bi bi-pencil me-1"></i>Edit
+                                    </a>
+                                    <form method="POST" action="{{url_for('admin_dash.delete_lot', lot_id=data.lot.id)}}"
+                                          onsubmit="return confirm('Are you sure you want to delete {{data.lot.prime_location_name}}? This action cannot be undone.');"
+                                          class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm mb-1" title="Delete Lot">
+                                            <i class="bi bi-trash me-1"></i>Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row g-3 mt-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill text-primary fs-1 mb-3"></i>
+                        <h6 class="card-title">Manage Users</h6>
+                        <p class="card-text text-muted small">View and manage registered users</p>
+                        <a href="{{url_for('admin_dash.view_users')}}" class="btn btn-outline-primary btn-sm">
+                            View Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bar-chart-fill text-success fs-1 mb-3"></i>
+                        <h6 class="card-title">View Reports</h6>
+                        <p class="card-text text-muted small">Check parking analytics and summaries</p>
+                        <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-success btn-sm">
+                            View Summary
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-plus-circle-fill text-info fs-1 mb-3"></i>
+                        <h6 class="card-title">Add New Lot</h6>
+                        <p class="card-text text-muted small">Expand your parking network</p>
+                        <a href="{{url_for('admin_dash.create_lot')}}" class="btn btn-outline-info btn-sm">
+                            Create Lot
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('spotSearchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const spotId = document.getElementById('searchSpotId').value;
+            const lotId = document.getElementById('searchLotName').value;
+            
+            if (!spotId && !lotId) {
+                alert('Please enter a spot ID or select a parking lot to search.');
+                return;
+            }
+            const searchResults = document.getElementById('searchResults');
+            const searchResultsContent = document.getElementById('searchResultsContent');
+            searchResults.style.display = 'block';
+            searchResultsContent.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            const params = new URLSearchParams();
+            if (spotId) params.append('spot_id', spotId);
+            if (lotId) params.append('lot_id', lotId);
+            fetch(`{{url_for('admin_dash.search_spots')}}?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySearchResults(data.results);
+                    } else {
+                        searchResultsContent.innerHTML = `
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>${data.message}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchResultsContent.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-x-circle me-2"></i>An error occurred while searching. Please try again.
+                        </div>
+                    `;
+                });
+        });
+        
+        function displaySearchResults(results) {
+            const searchResultsContent = document.getElementById('searchResultsContent');
+            
+            if (results.length === 0) {
+                searchResultsContent.innerHTML = `
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>No spots found matching your search criteria.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-striped table-hover align-middle">';
+            html += `
+                <thead class="table-dark">
+                    <tr>
+                        <th>Spot ID</th>
+                        <th>Parking Lot</th>
+                        <th>Status</th>
+                        <th>User</th>
+                        <th>Vehicle</th>
+                        <th>Parking Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            results.forEach(spot => {
+                const statusBadge = spot.status === 'A' 
+                    ? '<span class="badge bg-success">A</span>'
+                    : '<span class="badge bg-danger">O</span>';
+                
+                html += `
+                    <tr>
+                        <td><span class="badge bg-primary">${spot.id}</span></td>
+                        <td><strong>${spot.lot_name}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td>${spot.user_name || '<span class="text-muted">-</span>'}</td>
+                        <td>${spot.vehicle_number ? '<span>' + spot.vehicle_number + '</span>' : '<span class="text-muted">-</span>'}</td>
+                        <td>${spot.parking_time || '<span class="text-muted">-</span>'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            searchResultsContent.innerHTML = html;
+        }
+        
+        function clearSearch() {
+            document.getElementById('searchSpotId').value = '';
+            document.getElementById('searchLotName').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

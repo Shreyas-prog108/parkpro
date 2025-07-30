@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - ParkPro</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 4px solid #17a2b8;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #28a745;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #17a2b8;
+        }
+        .card-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .card-title i {
+            margin-right: 10px;
+            color: #17a2b8;
+        }
+        .table-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .btn-book {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-book:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+        }
+        .btn-release {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-release:hover {
+            background: linear-gradient(135deg, #c82333, #bd2130);
+            color: white;
+        }
+        .status-active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-full {
+            background: #6c757d;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Navigation -->
+        <nav class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="{{url_for('user_dash.dash')}}" class="btn btn-info me-2">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{{url_for('user_dash.recap')}}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-person-circle"></i> Profile
+                    </a>
+                </div>
+                <a href="{{url_for('logout')}}" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <div class="header text-center">
+            <h1 class="display-5 fw-bold mb-3">
+                <i class="bi bi-car-front me-3"></i>Welcome to Your Dashboard!
+            </h1>
+            <p class="lead mb-0">Manage your parking reservations with ease</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages=get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category,message in messages %}
+                        {% if category == 'danger' %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% elif category == 'success' %}
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% elif category == 'info' %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{active_reservations|length}}</div>
+                    <h5 class="text-muted mb-0">Active Reservations</h5>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number text-success">{{lot_data|sum(attribute='available_spots')}}</div>
+                    <h5 class="text-muted mb-0">Available Spots</h5>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number text-warning">{{past_reservations|length}}</div>
+                    <h5 class="text-muted mb-0">Total Bookings</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Parking Spots -->
+        <div class="dashboard-card">
+            <h4 class="card-title">
+                <i class="bi bi-car-front-fill"></i>Active Parking Spots
+            </h4>
+            
+            {% if active_reservations %}
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Parking Lot</th>
+                                    <th scope="col">Spot</th>
+                                    <th scope="col">Vehicle</th>
+                                    <th scope="col">Check-in Time</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in active_reservations %}
+                                <tr>
+                                    <td>
+                                        <strong>{{r.spot.lot.prime_location_name}}</strong>
+                                        <br><small class="text-muted">{{r.spot.lot.address}}</small>
+                                    </td>
+                                    <td><span>{{r.spot.id}}</span></td>
+                                    <td><span>{{r.vehicle_number}}</span></td>
+                                    <td><small>{{r.parking_timestamp.strftime('%Y-%m-%d %H:%M')}}</small></td>
+                                    <td><span class="status-active">Active</span></td>
+                                    <td class="text-center">
+                                        <form method="POST" action="{{ url_for('user_dash.release_spot',reservation_id=r.id)}}" class="d-inline">
+                                            <button type="submit" class="btn btn-release btn-sm"
+                                                onclick="return confirm('Are you sure you want to release this spot?')">
+                                                <i class="bi bi-car-front me-1"></i>Release
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-car-front"></i>
+                    <h5>No Active Parking Spots</h5>
+                    <p>You don't have any active parking reservations at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Available Parking Lots -->
+        <div class="dashboard-card">
+            <h4 class="card-title">
+                <i class="bi bi-building"></i>Available Parking Lots
+            </h4>
+            
+            {% if lot_data %}
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Parking Lot</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Price/Hour</th>
+                                    <th scope="col" class="text-center">Available</th>
+                                    <th scope="col" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in lot_data %}
+                                <tr>
+                                    <td>
+                                        <strong>{{data.lot.prime_location_name}}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="bi bi-geo-alt text-muted me-1"></i>{{data.lot.address}}
+                                        </div>
+                                        <small class="text-muted">PIN: {{data.lot.pin_code}}</small>
+                                    </td>
+                                    <td>
+                                        <span>₹{{data.lot.price_per_hour}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span>{{data.available_spots}}/{{data.total_spots}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if data.available_spots > 0 %}
+                                            <button type="button" class="btn btn-book btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#bookingModal"
+                                                    data-lot-id="{{data.lot.id}}"
+                                                    data-lot-name="{{data.lot.prime_location_name}}">
+                                                <i class="bi bi-plus-circle me-1"></i>Book Now
+                                            </button>
+                                        {% else %}
+                                            <span class="status-full">Full</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-building"></i>
+                    <h5>No Parking Lots Available</h5>
+                    <p>There are no parking lots available at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="dashboard-card">
+            <h4 class="card-title">
+                <i class="bi bi-clock-history"></i>Booking History
+            </h4>
+            
+            {% if past_reservations %}
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Parking Lot</th>
+                                    <th scope="col">Spot</th>
+                                    <th scope="col">Vehicle</th>
+                                    <th scope="col">Check-in</th>
+                                    <th scope="col">Check-out</th>
+                                    <th scope="col" class="text-end">Total Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in past_reservations %}
+                                {% if r.spot and r.spot.lot %}
+                                <tr>
+                                    <td>
+                                        <strong>{{r.spot.lot.prime_location_name}}</strong>
+                                    </td>
+                                    <td><span>{{r.spot.id}}</span></td>
+                                    <td><span>{{r.vehicle_number}}</span></td>
+                                    <td><small>{{r.parking_timestamp.strftime('%Y-%m-%d %H:%M')}}</small></td>
+                                    <td><small>{{r.leaving_timestamp.strftime('%Y-%m-%d %H:%M')}}</small></td>
+                                    <td class="text-end">
+                                        {% set duration=((r.leaving_timestamp-r.parking_timestamp).total_seconds()/3600) %}
+                                        {% set hours=duration|round(0,'ceil') %}
+                                        <strong class="text-success">₹{{hours*r.spot.lot.price_per_hour}}</strong>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clock-history"></i>
+                    <h5>No Booking History</h5>
+                    <p>You haven't completed any parking sessions yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingModalLabel">Book Parking Spot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bookingForm" method="POST" action="{{url_for('user_dash.book_spot')}}">
+                        <input type="hidden" name="lot_id" id="lotId">
+                        <div class="mb-3">
+                            <label for="vehicleNumber" class="form-label">
+                                <i class="bi bi-car-front me-2"></i>Vehicle Number
+                            </label>
+                            <input type="text" class="form-control" id="vehicleNumber" name="vehicle_number" 
+                                   list="vehicleList"
+                                   placeholder="Enter your vehicle number (e.g., ABC 1234)" 
+                                   required style="text-transform: uppercase;">
+                            <datalist id="vehicleList">
+                                <!-- Previous vehicles will be populated here -->
+                            </datalist>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Your previously used vehicles will appear as suggestions
+                                </small>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+            const bookingForm = document.getElementById('bookingForm');
+            const lotIdInput = document.getElementById('lotId');
+
+            document.querySelectorAll('.btn-book').forEach(button => {
+                button.addEventListener('click', function() {
+                    lotIdInput.value = this.dataset.lotId;
+                    bookingModal.show();
+                });
+            });
+
+            bookingForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+                
+                // Disable submit button to prevent double submission
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Booking...';
+                
+                fetch(this.action, {
+                    method: this.method,
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bookingModal.hide();
+                        this.reset(); // Clear the form
+                        alert('Spot booked successfully!');
+                        location.reload(); // Refresh the page to update stats
+                    } else {
+                        alert('Error booking spot: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during booking.');
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

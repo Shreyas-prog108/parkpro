@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Parking Lot - Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-floating {
+            margin-bottom: 20px;
+        }
+        .btn-custom {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .icon-input {
+            position: relative;
+        }
+        .icon-input i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            z-index: 5;
+        }
+        .icon-input .form-control {
+            padding-left: 45px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Navigation -->
+        <nav class="mb-4">
+            <a href="{{url_for('admin_dash.dash')}}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-bar-chart"></i> Summary
+            </a>
+            <a href="{{url_for('logout')}}" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+
+        <!-- Header -->
+        <div class="header text-center">
+            <h1 class="display-6 fw-bold mb-3">
+                <i class="bi bi-building-add me-3"></i>Create New Parking Lot
+            </h1>
+            <p class="lead mb-0">Add a new parking location to your network</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages=get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{% if category == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{% if category == 'error' %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+                {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Form Container -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <h4 class="text-primary">
+                            <i class="bi bi-geo-alt-fill me-2"></i>Parking Lot Details
+                        </h4>
+                        <p class="text-muted">Fill in the information below to create a new parking lot</p>
+                    </div>
+
+                    <form method="POST" action="{{url_for('admin_dash.create_lot')}}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           placeholder="Enter lot name" required>
+                                    <label for="name">
+                                        <i class="bi bi-building me-2"></i>Parking Lot Name
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="price_per_hour" 
+                                           name="price_per_hour" step="0.01" placeholder="0.00" required>
+                                    <label for="price_per_hour">
+                                        <i class="bi bi-currency-rupee me-2"></i>Price per Hour (₹)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="address" name="address" 
+                                              style="height: 100px" placeholder="Enter address" required></textarea>
+                                    <label for="address">
+                                        <i class="bi bi-geo-alt me-2"></i>Address
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="pin_code" name="pin_code" 
+                                           placeholder="123456" required maxlength="6">
+                                    <label for="pin_code">
+                                        <i class="bi bi-mailbox me-2"></i>PIN Code
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 mx-auto">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="max_spots" name="max_spots" 
+                                           required min="1" max="500" placeholder="50">
+                                    <label for="max_spots">
+                                        <i class="bi bi-grid-3x3-gap me-2"></i>Maximum Parking Spots
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Choose between 1 and 500 spots
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-custom me-3">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Parking Lot
+                                </button>
+                                <a href="{{url_for('admin_dash.dash')}}" class="btn btn-outline-secondary btn-custom">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Footer -->
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="bi bi-lightbulb me-2"></i>Quick Actions
+                        </h6>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="{{url_for('admin_dash.parking_summary')}}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-bar-chart"></i> View Summary
+                            </a>
+                            <a href="{{url_for('admin_dash.view_users')}}" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-people"></i> Manage Users
+                            </a>
+                            <a href="{{url_for('admin_dash.dash')}}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-calculate estimated capacity
+            const spotsInput = document.getElementById('max_spots');
+            spotsInput.addEventListener('input', function() {
+                const spots = parseInt(this.value);
+                if (spots > 0) {
+                    console.log(`Creating parking lot with ${spots} spots`);
+                }
+            });
+
+            // Format price input
+            const priceInput = document.getElementById('price_per_hour');
+            priceInput.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    this.value = parseFloat(this.value).toFixed(2);
+                }
+            });
+
+            // Validate PIN code
+            const pinInput = document.getElementById('pin_code');
+            pinInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,SubmitField
-from wtforms.validators import DataRequired,Email,Length,EqualTo
+from wtforms.validators import DataRequired,Email,Length,EqualTo,Regexp
 
 class user_login_form(FlaskForm):
     email=StringField("Email",validators=[DataRequired(),Email()],render_kw={"placeholder": "Enter Email"})
@@ -15,3 +15,23 @@ class user_registration_form(FlaskForm):
     pincode=StringField("Pin Code",validators=[DataRequired(),Length(min=4,max=10)],render_kw={"placeholder":"Enter Pin Code"})
     address=StringField("Address",validators=[DataRequired(),Length(min=5,max=255)],render_kw={"placeholder":"Enter Address"})    
     submit=SubmitField("Register")
+
+class vehicle_form(FlaskForm):
+    vehicle_number = StringField(
+        "Vehicle Number",
+        validators=[
+            DataRequired(message="Vehicle number is required"),
+            Length(min=9, max=10, message="Vehicle number must be 9 or 10 characters"),
+            Regexp(
+                r'^[A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4}$',
+                message="Enter a valid Indian vehicle number (e.g., UP61A1234 or UP61ABC1234)"
+            )
+        ],
+        render_kw={
+            "placeholder": "UP61A1234",
+            "style": "text-transform: uppercase;",
+            "maxlength": "10",
+            "class": "form-control vehicle-input"
+        }
+    )
+    submit = SubmitField("Add Vehicle")

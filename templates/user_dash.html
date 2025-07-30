@@ -369,19 +369,24 @@
                             <label for="vehicleNumber" class="form-label">
                                 <i class="bi bi-car-front me-2"></i>Vehicle Number
                             </label>
-                            <input type="text" class="form-control" id="vehicleNumber" name="vehicle_number" 
+                            <input type="text" class="form-control vehicle-input" id="vehicleNumber" name="vehicle_number" 
                                    list="vehicleList"
-                                   placeholder="Enter your vehicle number (e.g., ABC 1234)" 
-                                   required style="text-transform: uppercase;">
+                                   placeholder="UP61A1234" 
+                                   maxlength="10"
+                                   pattern="^[A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4}$"
+                                   title="Enter Indian vehicle number format (e.g., UP61A1234 or UP61ABC1234)"
+                                   required style="text-transform: uppercase; font-family: monospace; letter-spacing: 1px;">
                             <datalist id="vehicleList">
-                                <!-- Previous vehicles will be populated here -->
                             </datalist>
                             <div class="form-text">
                                 <small class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>
-                                    Your previously used vehicles will appear as suggestions
+                                    Enter in format: State(2) + District(2) + Series(1-3) + Number(4)
+                                    <br>
+                                    <strong>Examples:</strong> UP61A1234 (9 digits), UP61AB1234, DL01ABC1234 (10 digits)
                                 </small>
                             </div>
+                            <div id="vehicleError" class="text-danger small mt-1" style="display: none;"></div>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">Confirm Booking</button>
@@ -409,8 +414,6 @@
             bookingForm.addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(this);
-                
-                // Disable submit button to prevent double submission
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.disabled = true;
@@ -426,7 +429,7 @@
                         bookingModal.hide();
                         this.reset(); // Clear the form
                         alert('Spot booked successfully!');
-                        location.reload(); // Refresh the page to update stats
+                        location.reload();
                     } else {
                         alert('Error booking spot: ' + data.message);
                     }
@@ -436,10 +439,68 @@
                     alert('An error occurred during booking.');
                 })
                 .finally(() => {
-                    // Re-enable submit button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
                 });
+            });
+            const vehicleInput = document.getElementById('vehicleNumber');
+            const vehicleError = document.getElementById('vehicleError');
+            function validateVehicleNumber(vehicleNumber) {
+                const cleanNumber = vehicleNumber.replace(/\s/g, '').toUpperCase();
+                const pattern = /^[A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4}$/;
+                return pattern.test(cleanNumber);
+            }
+            function formatVehicleNumber(input) {
+                let value = input.replace(/\s/g, '').toUpperCase();
+                value = value.replace(/[^A-Z0-9]/g, '');
+                if (value.length > 10) {
+                    value = value.substring(0, 10);
+                }
+                
+                return value;
+            }
+            
+            vehicleInput.addEventListener('input', function() {
+                let formattedValue = formatVehicleNumber(this.value);
+                this.value = formattedValue;
+                if (formattedValue.length >= 9) {
+                    if (validateVehicleNumber(formattedValue)) {
+                        vehicleError.style.display = 'none';
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        vehicleError.textContent = 'Invalid format. Use: State(2) + District(2) + Series(1-3) + Number(4)';
+                        vehicleError.style.display = 'block';
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    }
+                } else if (formattedValue.length > 0) {
+                    vehicleError.style.display = 'none';
+                    this.classList.remove('is-valid', 'is-invalid');
+                } else {
+                    vehicleError.style.display = 'none';
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+            
+            vehicleInput.addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (value && !validateVehicleNumber(value)) {
+                    vehicleError.textContent = 'Please enter a valid Indian vehicle number (e.g., UP61A1234 or UP61ABC1234)';
+                    vehicleError.style.display = 'block';
+                    this.classList.add('is-invalid');
+                }
+            });
+            bookingForm.addEventListener('submit', function(event) {
+                const vehicleNumber = vehicleInput.value.trim();
+                if (!validateVehicleNumber(vehicleNumber)) {
+                    event.preventDefault();
+                    vehicleError.textContent = 'Please enter a valid Indian vehicle number';
+                    vehicleError.style.display = 'block';
+                    vehicleInput.classList.add('is-invalid');
+                    vehicleInput.focus();
+                    return false;
+                }
             });
         });
     </script>

@@ -26,7 +26,7 @@ def load_user(user_id):
 
 @app.route("/")
 def home():
-    return redirect(url_for("login"))
+    return render_template("home.html")
 
 
 @app.route("/login",methods=["POST","GET"])
@@ -90,22 +90,10 @@ def logout():
 
 
 if __name__ == "__main__":
+    import os
     with app.app_context():
         db.create_all()
-        admin_email="23f3001837@ds.study.iitm.ac.in"
-        admin=User.query.filter_by(email=admin_email).first()
-        if not admin:
-            admin=User(
-                name="SuperUser",
-                email=admin_email,
-                password="23f3001837_iitm",
-                role="admin",
-                pincode=233001,
-                address="Harishankari,Ghazipur,U.P."
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("✅ Admin user created!")
-        else:
-            print("ℹ️ Admin user already exists.")
-    app.run(debug=True)
+    
+    # Get port from environment variable for cloud deployment
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

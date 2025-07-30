@@ -2,8 +2,38 @@ from flask import Blueprint,render_template,redirect,url_for,request,flash,jsoni
 from flask_login import login_required,current_user
 from models import db,Parkinglot,Spot,User,Reservation,Vehicle
 import datetime
+import re
 
 user_dash=Blueprint('user_dash',__name__,template_folder='templates')
+
+def validate_indian_vehicle_number(vehicle_number):
+    """
+    Validate Indian vehicle number format
+    Format: XX00XX0000 or XX00XXX0000
+    Examples: UP61ABC4376, DL01CAA1234, MH12DE1234
+    """
+    if not vehicle_number:
+        return False, "Vehicle number is required"
+    
+    # Clean the input
+    clean_number = vehicle_number.replace(' ', '').upper().strip()
+    
+    # Check length
+    if len(clean_number) < 9 or len(clean_number) > 10:
+        return False, "Vehicle number must be 9 or 10 characters"
+    
+    # Check format using regex
+    pattern = r'^[A-Z]{2}[0-9]{2}[A-Z]{1,3}[0-9]{4}$'
+    if not re.match(pattern, clean_number):
+        return False, "Invalid format. Use format: State(2) + District(2) + Series(1-3) + Number(4)"
+    
+    return True, clean_number
+
+def format_vehicle_number(vehicle_number):
+    """Format vehicle number to standard format"""
+    if not vehicle_number:
+        return ""
+    return vehicle_number.replace(' ', '').upper().strip()
 
 @user_dash.route('/user/dash')
 @login_required
@@ -59,6 +89,14 @@ def book_spot():
     if not lot_id or not vehicle_number:
         return jsonify({'success': False, 'message': 'Lot ID and vehicle number are required'})
     
+    # Validate vehicle number format
+    is_valid, result = validate_indian_vehicle_number(vehicle_number)
+    if not is_valid:
+        return jsonify({'success': False, 'message': f'Invalid vehicle number: {result}'})
+    
+    # Use the cleaned/formatted vehicle number
+    vehicle_number = result
+    
     try:
         lot_id = int(lot_id)
         lot = Parkinglot.query.get_or_404(lot_id)
@@ -72,13 +110,13 @@ def book_spot():
         ).first()
         vehicle = Vehicle.query.filter_by(
             user_id=current_user.id,
-            number=vehicle_number.upper().strip()
+            number=vehicle_number
         ).first()
         
         if not vehicle:
             vehicle = Vehicle(
                 user_id=current_user.id,
-                number=vehicle_number.upper().strip()
+                number=vehicle_number
             )
             db.session.add(vehicle)
             db.session.flush()

@@ -50,7 +50,6 @@ vehicle-parking-app-v1/
 │   └── ...
 ├── instance/
 │   └── parking_details.db # SQLite database
-└── venv/                 # Virtual environment
 ```
 
 ## 🗄️ Database Schema

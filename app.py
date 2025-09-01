@@ -19,10 +19,7 @@ app.register_blueprint(user_dash)
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(f"🔄 Loading User ID: {user_id}")
-    user = User.query.get(int(user_id))
-    print(f"✅ Loaded User: {user}")
-    return user
+    return User.query.get(int(user_id))
 
 @app.route("/")
 def home():
@@ -38,14 +35,14 @@ def login():
             flash("Email and password are required!","danger")
             return render_template("login.html")
         usr=User.query.filter_by(email=e_mail).first()
-        if usr and pass_word:
+        from werkzeug.security import check_password_hash
+        if usr and check_password_hash(usr.password, pass_word):
             login_user(usr)
             flash('Welcome to Parkpro!',"success")
             if usr.role=='admin':
                 return redirect(url_for("admin_dash.dash"))
             return redirect(url_for("user_dash.dash"))
         flash('Invalid login credentials!')
-        print("❌ Invalid credentials!")
     if current_user.is_authenticated:
             flash(f"You are already logged in as {current_user.name}!","info")
             return redirect(url_for("user_dash.dash"))
@@ -54,11 +51,11 @@ def login():
 @app.route("/register",methods=["GET","POST"])
 def register():
     form=user_registration_form()
-    print("📩 Form Submitted:",request.method)
     if form.validate_on_submit():
         email=form.email.data
         password=form.password.data
-        hashed_pass=password
+        from werkzeug.security import generate_password_hash
+        hashed_pass=generate_password_hash(password)
         exist_usr=User.query.filter_by(email=email).first()
         if exist_usr:
             flash("Account already exists! Please log in.","info")
@@ -68,14 +65,10 @@ def register():
         try:
             db.session.commit()
             flash("You are now in Parkpro Family!","success")
-            print("✅ User registered successfully!")
             return redirect("/login")
         except Exception as e:
             db.session.rollback()
             flash("Something went wrong! Try again.","danger")
-            print("Error committing to DB:",e)
-    else:
-        print("Form errors:",form.errors)
     return render_template("register.html", form=form)
 
 

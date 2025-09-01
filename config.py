@@ -2,16 +2,16 @@ import os
 import secrets
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+# INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
 
-if not os.path.exists(INSTANCE_DIR):
-    os.makedirs(INSTANCE_DIR)
+# if not os.path.exists(INSTANCE_DIR):
+#     os.makedirs(INSTANCE_DIR)
 
 def get_database_uri():
     db_url = os.getenv("DATABASE_URL")
     if db_url and db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
-    return db_url or f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
+    # return db_url or f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(16))
@@ -21,7 +21,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
+    # SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = get_database_uri()

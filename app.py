@@ -28,47 +28,60 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/login",methods=["POST","GET"])
+from werkzeug.security import check_password_hash
+
+@app.route("/login", methods=["POST","GET"])
 def login():
-    if request.method=="POST":
-        e_mail=request.form.get("email","").strip()
-        pass_word=request.form.get("password","").strip()
+    if request.method == "POST":
+        e_mail = request.form.get("email","").strip()
+        pass_word = request.form.get("password","").strip()
         if not e_mail or not pass_word:
-            flash("Email and password are required!","danger")
+            flash("Email and password are required!", "danger")
             return render_template("login.html")
-        usr=User.query.filter_by(email=e_mail).first()
-        if usr and (usr.password, pass_word):
+        
+        usr = User.query.filter_by(email=e_mail).first()
+        if usr and usr.password == pass_word: 
             login_user(usr)
-            flash('Welcome to Parkpro!',"success")
-            if usr.role=='admin':
+            flash('Welcome to Parkpro!', "success")
+            if usr.role == 'admin':
                 return redirect(url_for("admin_dash.dash"))
             return redirect(url_for("user_dash.dash"))
         flash('Invalid login credentials!')
     if current_user.is_authenticated:
-            flash(f"You are already logged in as {current_user.name}!","info")
-            return redirect(url_for("user_dash.dash"))
+        flash(f"You are already logged in as {current_user.name}!", "info")
+        return redirect(url_for("user_dash.dash"))
+    
     return render_template("login.html")
+
+
         
-@app.route("/register",methods=["GET","POST"])
+@app.route("/register", methods=["GET","POST"])
 def register():
-    form=user_registration_form()
+    form = user_registration_form()
     if form.validate_on_submit():
-        email=form.email.data
-        password=form.password.data
-        exist_usr=User.query.filter_by(email=email).first()
+        email = form.email.data
+        password = form.password.data
+        exist_usr = User.query.filter_by(email=email).first()
         if exist_usr:
-            flash("Account already exists! Please log in.","info")
+            flash("Account already exists! Please log in.", "info")
             return redirect(url_for("login"))
-        new_usr=User(email=form.email.data,password=password,name=form.name.data,pincode=int(form.pincode.data),address=form.address.data)
+        new_usr = User(
+            email=email,
+            password=password,
+            name=form.name.data,
+            pincode=int(form.pincode.data),
+            address=form.address.data
+        )
         db.session.add(new_usr)
         try:
             db.session.commit()
-            flash("You are now in Parkpro Family!","success")
+            flash("You are now in Parkpro Family!", "success")
             return redirect("/login")
         except Exception as e:
             db.session.rollback()
-            flash("Something went wrong! Try again.","danger")
+            flash("Something went wrong! Try again.", "danger")
     return render_template("register.html", form=form)
+
 
 
 

@@ -1,10 +1,3 @@
-"""Initial migration
-
-Revision ID: 35ea3651fe94
-Revises: 
-Create Date: 2025-09-02 09:56:43.179802
-
-"""
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
@@ -43,7 +36,7 @@ def upgrade():
                existing_type=sa.BIGINT(),
                type_=sa.Integer(),
                nullable=False)
-        batch_op.create_unique_constraint(None, ['id'])
+        batch_op.create_unique_constraint('uq_parkinglot_id', ['id'])
 
     with op.batch_alter_table('reservation', schema=None) as batch_op:
         batch_op.alter_column('id',
@@ -121,7 +114,7 @@ def upgrade():
                type_=sa.String(length=255),
                nullable=False)
         batch_op.drop_index(batch_op.f('idx_16399_sqlite_autoindex_user_1'))
-        batch_op.create_unique_constraint(None, ['email'])
+        batch_op.create_unique_constraint('uq_user_email', ['email'])
 
     with op.batch_alter_table('vehicle', schema=None) as batch_op:
         batch_op.alter_column('id',
@@ -159,7 +152,7 @@ def downgrade():
                autoincrement=True)
 
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.drop_constraint(None, type_='unique')
+        batch_op.drop_constraint('uq_user_email', type_='unique')
         batch_op.create_index(batch_op.f('idx_16399_sqlite_autoindex_user_1'), ['email'], unique=True)
         batch_op.alter_column('address',
                existing_type=sa.String(length=255),
@@ -237,7 +230,7 @@ def downgrade():
                autoincrement=True)
 
     with op.batch_alter_table('parkinglot', schema=None) as batch_op:
-        batch_op.drop_constraint(None, type_='unique')
+        batch_op.drop_constraint('uq_parkinglot_id', type_='unique')
         batch_op.alter_column('number_of_spots',
                existing_type=sa.Integer(),
                type_=sa.BIGINT(),

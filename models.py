@@ -16,13 +16,13 @@ class User(db.Model,UserMixin):
     vehicles=db.relationship('Vehicle',backref='user',cascade="all,delete-orphan")
 
 class Vehicle(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     number=db.Column(db.String(20),nullable=False)
     user_id=db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     reservations=db.relationship('Reservation',backref='vehicle',cascade="all,delete-orphan")
 
 class Parkinglot(db.Model):
-    id=db.Column(db.Integer,unique=True,primary_key=True)
+    id=db.Column(db.Integer,unique=True,primary_key=True,autoincrement=True)
     prime_location_name=db.Column(db.String(255),nullable=False)
     price_per_hour=db.Column(db.Float,nullable=False)
     address=db.Column(db.String(255),nullable=False)
@@ -31,13 +31,13 @@ class Parkinglot(db.Model):
     spots=db.relationship('Spot',backref='lot',cascade="all,delete-orphan")
 
 class Spot(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     status=db.Column(db.String(20),nullable=False,default='A')
     lot_id=db.Column(db.Integer,db.ForeignKey('parkinglot.id'),nullable=False)
     reservations=db.relationship('Reservation',backref='spot',cascade="all,delete-orphan")
 
 class Reservation(db.Model):
-    id=db.Column(db.Integer,primary_key=True)
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     user_id=db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     spot_id=db.Column(db.Integer,db.ForeignKey('spot.id'),nullable=False)
     vehicle_id=db.Column(db.Integer,db.ForeignKey('vehicle.id'),nullable=True)

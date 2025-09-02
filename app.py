@@ -28,8 +28,6 @@ def home():
     return render_template("home.html")
 
 
-from werkzeug.security import check_password_hash
-
 @app.route("/login", methods=["POST","GET"])
 def login():
     if request.method == "POST":
@@ -65,11 +63,12 @@ def register():
         if exist_usr:
             flash("Account already exists! Please log in.", "info")
             return redirect(url_for("login"))
+        
         new_usr = User(
             email=email,
             password=password,
             name=form.name.data,
-            pincode=int(form.pincode.data),
+            pincode=form.pincode.data,
             address=form.address.data
         )
         db.session.add(new_usr)
@@ -79,7 +78,14 @@ def register():
             return redirect("/login")
         except Exception as e:
             db.session.rollback()
-            flash("Something went wrong! Try again.", "danger")
+            print(f"Registration error: {str(e)}")  # For debugging
+            flash(f"Registration failed: {str(e)}", "danger")
+    else:
+        # Show form validation errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{field}: {error}", "danger")
+    
     return render_template("register.html", form=form)
 
 
@@ -96,6 +102,10 @@ def logout():
 
 if __name__ == "__main__":
     import os
+    
+    # Debug: Print environment info
+    print(f"DATABASE_URL set: {'DATABASE_URL' in os.environ}")
+    print(f"SECRET_KEY set: {'SECRET_KEY' in os.environ}")
     
     # Get port from environment variable for cloud deployment
     port = int(os.environ.get('PORT', 5000))

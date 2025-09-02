@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField
-from wtforms.validators import DataRequired,Email,Length,EqualTo,Regexp
+from wtforms import StringField,PasswordField,SubmitField,IntegerField
+from wtforms.validators import DataRequired,Email,Length,EqualTo,Regexp,NumberRange
 
 class user_login_form(FlaskForm):
     email=StringField("Email",validators=[DataRequired(),Email()],render_kw={"placeholder": "Enter Email"})
@@ -12,7 +12,7 @@ class user_registration_form(FlaskForm):
     email=StringField("Email",validators=[DataRequired(),Email()],render_kw={"placeholder":"Enter Email"})
     password=PasswordField("Password",validators=[DataRequired(),Length(min=6)],render_kw={"placeholder":"Enter Password"})
     confirm_pass=PasswordField("Confirm Password",validators=[DataRequired(),EqualTo("password")],render_kw={"placeholder":"Confirm Password"})
-    pincode=StringField("Pin Code",validators=[DataRequired(),Length(min=4,max=10)],render_kw={"placeholder":"Enter Pin Code"})
+    pincode=IntegerField("Pin Code",validators=[DataRequired(),NumberRange(min=100000,max=999999,message="Enter a valid 6-digit pincode")],render_kw={"placeholder":"Enter Pin Code"})
     address=StringField("Address",validators=[DataRequired(),Length(min=5,max=255)],render_kw={"placeholder":"Enter Address"})    
     submit=SubmitField("Register")
 

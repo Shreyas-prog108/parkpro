@@ -686,21 +686,54 @@
         function animateCounters() {
             const counters = document.querySelectorAll('.stat-number');
             counters.forEach(counter => {
-                const target = parseInt(counter.innerText.replace(/[^\d]/g, ''));
-                const suffix = counter.innerText.replace(/[\d]/g, '');
+                const originalText = counter.innerText;
+                let target, suffix, isDecimal = false, displayMultiplier = 1;
+                
+                // Handle different formats
+                if (originalText.includes('%')) {
+                    // Handle percentages like "99.9%"
+                    target = parseFloat(originalText.replace('%', ''));
+                    suffix = '%';
+                    isDecimal = originalText.includes('.');
+                } else if (originalText.includes('k+')) {
+                    // Handle thousands like "10k+"
+                    target = parseInt(originalText.replace('k+', ''));
+                    suffix = 'k+';
+                    displayMultiplier = 1; // We'll display as "10k+" not "10000+"
+                } else if (originalText.includes('+')) {
+                    // Handle simple plus like "50+", "1000+"
+                    target = parseInt(originalText.replace('+', ''));
+                    suffix = '+';
+                } else {
+                    // Default case
+                    target = parseInt(originalText.replace(/[^\d]/g, ''));
+                    suffix = originalText.replace(/[\d]/g, '');
+                }
+                
                 let current = 0;
-                const increment = target / 100;
+                const increment = target / 100; // Animate over 100 steps
                 const timer = setInterval(() => {
                     current += increment;
                     if (current >= target) {
-                        counter.innerText = target + suffix;
+                        // Final display
+                        if (isDecimal) {
+                            counter.innerText = target.toFixed(1) + suffix;
+                        } else {
+                            counter.innerText = target + suffix;
+                        }
                         clearInterval(timer);
                     } else {
-                        counter.innerText = Math.floor(current) + suffix;
+                        // Current display during animation
+                        if (isDecimal) {
+                            counter.innerText = current.toFixed(1) + suffix;
+                        } else {
+                            counter.innerText = Math.floor(current) + suffix;
+                        }
                     }
-                }, 20);
+                }, 30); // Slightly slower animation
             });
         }
+        // Initialize counter animation when stats section comes into view
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -708,12 +741,20 @@
                     observer.unobserve(entry.target);
                 }
             });
+        }, {
+            threshold: 0.5 // Trigger when 50% of the section is visible
         });
 
-        const statsSection = document.querySelector('.stats');
-        if (statsSection) {
-            observer.observe(statsSection);
-        }
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsSection = document.querySelector('.stats');
+            if (statsSection) {
+                observer.observe(statsSection);
+            } else {
+                console.warn('Stats section not found, running animation immediately');
+                animateCounters(); // Fallback
+            }
+        });
     </script>
 </body>
 </html>

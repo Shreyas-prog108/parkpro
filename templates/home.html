@@ -50,19 +50,6 @@
 
         .brand-icon {
             font-size: 2rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: #007bff; /* Fallback color */
-        }
-
-        /* Fallback for older browsers */
-        @supports not (-webkit-background-clip: text) {
-            .brand-icon {
-                color: #007bff !important;
-                background: none !important;
-            }
         }
 
         .nav-link {
@@ -264,10 +251,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             color: #007bff;
-            /* Fallback for browsers that don't support background-clip */
         }
-
-        /* Fallback for older browsers */
         @supports not (-webkit-background-clip: text) {
             .feature-icon i {
                 color: #007bff !important;
@@ -641,8 +625,7 @@
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
                     <h5>
-                        <div class="brand-icon">🅿️</div>
-                        ParkPro
+                        <div class="brand-icon">🅿️ ParkPro</div>
                     </h5>
                     <p>Smart parking solutions for the modern world. Making parking simple, efficient, and stress-free.</p>
                 </div>

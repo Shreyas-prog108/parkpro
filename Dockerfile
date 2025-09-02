@@ -5,4 +5,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 5000
 RUN chmod +x start.sh
-CMD ["./start.sh"]
+CMD ["bash", "./start.sh"]

@@ -72,20 +72,9 @@ def register():
             address=form.address.data
         )
         db.session.add(new_usr)
-        try:
-            db.session.commit()
-            flash("You are now in Parkpro Family!", "success")
-            return redirect("/login")
-        except Exception as e:
-            db.session.rollback()
-            print(f"Registration error: {str(e)}")  # For debugging
-            flash(f"Registration failed: {str(e)}", "danger")
-    else:
-        # Show form validation errors
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{field}: {error}", "danger")
-    
+        db.session.commit()
+        flash("You are now in Parkpro Family!", "success")
+        return redirect("/login")
     return render_template("register.html", form=form)
 
 

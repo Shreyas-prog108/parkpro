@@ -1,6 +1,7 @@
 from flask import Flask,redirect,url_for,render_template,request,session,flash
 from models import db,User
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from config import Config
 from flask_login import login_user,logout_user,login_required,LoginManager,current_user
 from forms import user_registration_form,user_login_form
@@ -12,6 +13,7 @@ from user_dashboard import user_dash
 app=Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+migrate = Migrate(app, db)
 login_manager=LoginManager(app)
 login_manager.login_view="login"
 app.register_blueprint(admin_dash)
@@ -35,8 +37,7 @@ def login():
             flash("Email and password are required!","danger")
             return render_template("login.html")
         usr=User.query.filter_by(email=e_mail).first()
-        from werkzeug.security import check_password_hash
-        if usr and check_password_hash(usr.password, pass_word):
+        if usr and (usr.password, pass_word):
             login_user(usr)
             flash('Welcome to Parkpro!',"success")
             if usr.role=='admin':
@@ -54,13 +55,11 @@ def register():
     if form.validate_on_submit():
         email=form.email.data
         password=form.password.data
-        from werkzeug.security import generate_password_hash
-        hashed_pass=generate_password_hash(password)
         exist_usr=User.query.filter_by(email=email).first()
         if exist_usr:
             flash("Account already exists! Please log in.","info")
             return redirect(url_for("login"))
-        new_usr=User(email=form.email.data,password=hashed_pass,name=form.name.data,pincode=int(form.pincode.data),address=form.address.data)
+        new_usr=User(email=form.email.data,password=password,name=form.name.data,pincode=int(form.pincode.data),address=form.address.data)
         db.session.add(new_usr)
         try:
             db.session.commit()
@@ -84,8 +83,6 @@ def logout():
 
 if __name__ == "__main__":
     import os
-    with app.app_context():
-        db.create_all()
     
     # Get port from environment variable for cloud deployment
     port = int(os.environ.get('PORT', 5000))

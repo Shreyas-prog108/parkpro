@@ -3,6 +3,7 @@ flask_login
 werkzeug
 flask_sqlalchemy
 flask_wtf
+flask-migrate
 psycopg2-binary
 gunicorn
 python-dotenv

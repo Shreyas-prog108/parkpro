@@ -7,12 +7,6 @@ services:
     branch: main
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: parkpro-db
-          property: connectionString
+        value: postgresql://neondb_owner:npg_EdpbutH1Q6Lm@ep-autumn-frost-a1ui69v5-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: SECRET_KEY
         generateValue: true
-
-databases:
-  - name: parkpro-db
-    plan: free

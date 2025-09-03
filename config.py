@@ -25,6 +25,7 @@ class DevelopmentConfig(Config):
     # SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
 
 class ProductionConfig(Config):
+    DEBUG = False  # ✅ Security: Disable debug in production
     SQLALCHEMY_DATABASE_URI = get_database_uri()
 
 config = {

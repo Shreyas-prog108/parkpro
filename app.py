@@ -2,7 +2,7 @@ from flask import Flask,redirect,url_for,render_template,request,session,flash
 from models import db,User
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from config import Config, configck 
+from config import Config, config
 import os
 from flask_login import login_user,logout_user,login_required,LoginManager,current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,7 +13,10 @@ from user_dashboard import user_dash
 
 
 app=Flask(__name__)
-app.config.from_object(Config)
+# Load environment-based configuration
+env = os.getenv('FLASK_ENV', 'development')
+config_class = config.get(env, config['development'])
+app.config.from_object(config_class)
 db.init_app(app)
 migrate = Migrate(app, db)
 login_manager=LoginManager(app)

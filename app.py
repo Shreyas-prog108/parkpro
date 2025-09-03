@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
 from flask_login import login_user,logout_user,login_required,LoginManager,current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from forms import user_registration_form,user_login_form
 from admin_dashboard import admin_dash
 from user_dashboard import user_dash
@@ -38,7 +39,7 @@ def login():
             return render_template("login.html")
         
         usr = User.query.filter_by(email=e_mail).first()
-        if usr and usr.password == pass_word: 
+        if usr and check_password_hash(usr.password, pass_word): 
             login_user(usr)
             flash('Welcome to Parkpro!', "success")
             if usr.role == 'admin':
@@ -66,7 +67,7 @@ def register():
         
         new_usr = User(
             email=email,
-            password=password,
+            password=generate_password_hash(password),
             name=form.name.data,
             pincode=form.pincode.data,
             address=form.address.data

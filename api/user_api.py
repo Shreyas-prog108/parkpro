@@ -15,7 +15,7 @@ def register_user():
     name=data["name"]
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "User already exists"}),409
-    hashed_pass=generate_password_hash(password, method="pbkdf2:sha256")
+    hashed_pass=generate_password_hash(password)
     new_user=User(email=email, password=hashed_pass, name=name)
     db.session.add(new_user)
     db.session.commit()
@@ -26,7 +26,7 @@ def login_user_api():
     if not data or not all(k in data for k in ["email", "password"]):
         return jsonify({"error": "Missing email or password"}),400    
     user = User.query.filter_by(email=data["email"]).first()    
-    if user(user.password, data["password"]):
+    if user and check_password_hash(user.password, data["password"]):
         login_user(user)
         return jsonify({"message": "Login successful"}),200    
     return jsonify({"error": "Invalid credentials"}),401

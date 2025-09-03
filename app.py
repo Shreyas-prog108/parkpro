@@ -92,11 +92,5 @@ def logout():
 
 if __name__ == "__main__":
     import os
-    
-    # Debug: Print environment info
-    print(f"DATABASE_URL set: {'DATABASE_URL' in os.environ}")
-    print(f"SECRET_KEY set: {'SECRET_KEY' in os.environ}")
-    
-    # Get port from environment variable for cloud deployment
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

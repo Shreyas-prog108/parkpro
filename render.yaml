@@ -7,6 +7,6 @@ services:
     branch: main
     envVars:
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_EdpbutH1Q6Lm@ep-autumn-frost-a1ui69v5-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+        sync: false
       - key: SECRET_KEY
         generateValue: true

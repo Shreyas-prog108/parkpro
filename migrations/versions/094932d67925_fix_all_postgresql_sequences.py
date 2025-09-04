@@ -34,10 +34,9 @@ def upgrade():
             sequence_name = f'{table_name}_id_seq'
             connection.execute(sa.text(f'SELECT setval(\'{sequence_name}\', {max_id + 1})'))
             
-            print(f'Fixed sequence for {table_name}: set to {max_id + 1}')
-        except Exception as e:
-            print(f'Error fixing sequence for {table_name}: {e}')
+        except Exception:
             # Continue with other tables even if one fails
+            pass
 
 
 def downgrade():

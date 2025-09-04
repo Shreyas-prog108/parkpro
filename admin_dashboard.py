@@ -38,13 +38,22 @@ def create_lot():
         address=request.form['address']
         pin_code=request.form['pin_code']
         max_spots=int(request.form['max_spots'])
-        new_lot=Parkinglot(prime_location_name=name,price_per_hour=price_per_hour,address=address,pin_code=pin_code,number_of_spots=max_spots)
-        db.session.add(new_lot)
-        db.session.commit()
-        for i in range(max_spots):
-            spot=Spot(lot_id=new_lot.id,status='A')
-            db.session.add(spot)
-        db.session.commit()
+        try:
+            new_lot=Parkinglot(prime_location_name=name,price_per_hour=price_per_hour,address=address,pin_code=pin_code,number_of_spots=max_spots)
+            db.session.add(new_lot)
+            db.session.flush()  # Get the lot ID
+            
+            # Add spots one by one to avoid batch insert issues
+            for i in range(max_spots):
+                spot=Spot(lot_id=new_lot.id,status='A')
+                db.session.add(spot)
+                db.session.flush()  # Flush each spot individually
+            
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating parking lot: {str(e)}', 'error')
+            return redirect(url_for('admin_dash.create_lot'))
         flash('Lot Created Successfully!')
         return redirect(url_for('admin_dash.dash'))
     return render_template('create_lot.html')
@@ -126,20 +135,28 @@ def edit_lot(lot_id):
         lot.pin_code=request.form.get('pin_code')
         new_max_spots=int(request.form.get('max_spots'))
         current_spots_count=Spot.query.filter_by(lot_id=lot.id).count()
-        if(new_max_spots>current_spots_count):
-            for _ in range(new_max_spots-current_spots_count):
-                spot=Spot(lot_id=lot.id,status='A')
-                db.session.add(spot)
-        elif(new_max_spots<current_spots_count):
-            spots=Spot.query.filter_by(lot_id=lot.id).order_by(Spot.id.desc()).all()
-            removable_spots=[s for s in spots if s.status == 'A']
-            if len(removable_spots)<(current_spots_count-new_max_spots):
-                flash('Cannot reduce spots:Some spots are occupied')
-                return redirect(url_for('admin_dash.edit_lot',lot_id=lot.id))
-            for i in range(current_spots_count-new_max_spots):
-                db.session.delete(removable_spots[i])
-        lot.number_of_spots=new_max_spots
-        db.session.commit()
+        try:
+            if(new_max_spots>current_spots_count):
+                # Add new spots one by one to avoid batch insert issues
+                for _ in range(new_max_spots-current_spots_count):
+                    spot=Spot(lot_id=lot.id,status='A')
+                    db.session.add(spot)
+                    db.session.flush()  # Flush each spot individually
+            elif(new_max_spots<current_spots_count):
+                spots=Spot.query.filter_by(lot_id=lot.id).order_by(Spot.id.desc()).all()
+                removable_spots=[s for s in spots if s.status == 'A']
+                if len(removable_spots)<(current_spots_count-new_max_spots):
+                    flash('Cannot reduce spots:Some spots are occupied')
+                    return redirect(url_for('admin_dash.edit_lot',lot_id=lot.id))
+                for i in range(current_spots_count-new_max_spots):
+                    db.session.delete(removable_spots[i])
+            
+            lot.number_of_spots=new_max_spots
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating parking lot: {str(e)}', 'error')
+            return redirect(url_for('admin_dash.edit_lot',lot_id=lot.id))
         flash('Parking lot updated Successfully!')
         return redirect(url_for('admin_dash.dash'))
     return render_template('edit_lot.html',lot=lot)

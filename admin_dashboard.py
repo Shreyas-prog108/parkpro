@@ -43,12 +43,14 @@ def create_lot():
             db.session.add(new_lot)
             db.session.flush()  # Get the lot ID
             
-            # Add spots one by one to avoid batch insert issues
+            # Batch create spots for better performance
+            spots = []
             for i in range(max_spots):
-                spot=Spot(lot_id=new_lot.id,status='A')
-                db.session.add(spot)
-                db.session.flush()  # Flush each spot individually
+                spot = Spot(lot_id=new_lot.id, status='A')
+                spots.append(spot)
             
+            # Add all spots at once
+            db.session.add_all(spots)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -137,11 +139,12 @@ def edit_lot(lot_id):
         current_spots_count=Spot.query.filter_by(lot_id=lot.id).count()
         try:
             if(new_max_spots>current_spots_count):
-                # Add new spots one by one to avoid batch insert issues
+                # Batch create new spots for better performance
+                spots_to_add = []
                 for _ in range(new_max_spots-current_spots_count):
-                    spot=Spot(lot_id=lot.id,status='A')
-                    db.session.add(spot)
-                    db.session.flush()  # Flush each spot individually
+                    spot = Spot(lot_id=lot.id, status='A')
+                    spots_to_add.append(spot)
+                db.session.add_all(spots_to_add)
             elif(new_max_spots<current_spots_count):
                 spots=Spot.query.filter_by(lot_id=lot.id).order_by(Spot.id.desc()).all()
                 removable_spots=[s for s in spots if s.status == 'A']

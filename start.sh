@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "Running database migrations..."
+flask db upgrade
 echo "Initializing database tables..."
 python -c "from app import app, db; app.app_context().push(); db.create_all()"
 echo "Starting Gunicorn server..."

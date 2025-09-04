@@ -9,10 +9,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def get_database_uri():
     db_url = os.getenv("DATABASE_URL")
-    if db_url and db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    return db_url or f"sqlite:///parking_details.db"
-    # return db_url or f"sqlite:///{os.path.join(INSTANCE_DIR, 'parking_details.db')}"
+    if db_url:
+        db_url = db_url.strip()
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        if db_url:
+            return db_url
+    return f"sqlite:///parking_details.db"
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(16))

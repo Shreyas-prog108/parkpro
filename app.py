@@ -2,7 +2,7 @@ from flask import Flask,redirect,url_for,render_template,request,session,flash
 from models import db,User
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from config import Config, config
+from config import config
 import os
 from flask_login import login_user,logout_user,login_required,LoginManager,current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,8 +13,7 @@ from user_dashboard import user_dash
 
 
 app=Flask(__name__)
-# Load environment-based configuration
-env = os.getenv('FLASK_ENV', 'development')
+env = os.getenv('FLASK_ENV', 'production' if os.getenv('RENDER') else 'development')
 config_class = config.get(env, config['development'])
 app.config.from_object(config_class)
 db.init_app(app)
@@ -23,6 +22,16 @@ login_manager=LoginManager(app)
 login_manager.login_view="login"
 app.register_blueprint(admin_dash)
 app.register_blueprint(user_dash)
+
+# Security headers
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
 
 @login_manager.user_loader
 def load_user(user_id):

@@ -8,18 +8,24 @@ user_api=Blueprint("user_api", __name__)
 @user_api.route("/api/register", methods=["POST"])
 def register_user():
     data=request.get_json()
-    if not data or not all(k in data for k in ["email", "password", "name"]):
-        return jsonify({"error": "Missing required fields"}),400
+    if not data or not all(k in data for k in ["email", "password", "name", "pincode", "address"]):
+        return jsonify({"error": "Missing required fields: email, password, name, pincode, address"}),400
     email=data["email"]
     password=data["password"]
     name=data["name"]
+    pincode=data["pincode"]
+    address=data["address"]
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "User already exists"}),409
     hashed_pass=generate_password_hash(password)
-    new_user=User(email=email, password=hashed_pass, name=name)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message":"User registered successfully"}),201
+    new_user=User(email=email, password=hashed_pass, name=name, pincode=pincode, address=address)
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"message":"User registered successfully"}),201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Registration failed"}),500
 @user_api.route("/api/login",methods=["POST"])
 def login_user_api():
     data=request.get_json()    

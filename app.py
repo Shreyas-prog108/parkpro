@@ -9,6 +9,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import user_registration_form,user_login_form
 from admin_dashboard import admin_dash
 from user_dashboard import user_dash
+from api.admin_api import admin_api
+from api.user_api import user_api
 
 
 
@@ -22,6 +24,8 @@ login_manager=LoginManager(app)
 login_manager.login_view="login"
 app.register_blueprint(admin_dash)
 app.register_blueprint(user_dash)
+app.register_blueprint(admin_api, url_prefix='/admin')
+app.register_blueprint(user_api, url_prefix='/user')
 
 # Security headers
 @app.after_request

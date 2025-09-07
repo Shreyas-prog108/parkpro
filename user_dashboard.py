@@ -104,10 +104,15 @@ def book_spot():
         
         if not spot:
             return jsonify({'success': False, 'message': 'No available spots in this lot'})
+        # Check if user already has an active reservation
         existing_reservation = Reservation.query.filter_by(
             user_id=current_user.id,
             leaving_timestamp=None
         ).first()
+        
+        if existing_reservation:
+            return jsonify({'success': False, 'message': 'You already have an active parking reservation'})
+        
         vehicle = Vehicle.query.filter_by(
             user_id=current_user.id,
             number=vehicle_number

@@ -39,7 +39,12 @@ def add_security_headers(response):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except Exception:
+        db.session.rollback()
+        return User.query.get(int(user_id))
+
 
 @app.route("/")
 def home():

@@ -1,0 +1,22 @@
+name: Keep Flask App Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:  
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Flask app
+        run: |
+          APP_URL="https://parkpro-backend.onrender.com/"
+          echo "Pinging $APP_URL ..."
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" $APP_URL)
+          if [ $STATUS -eq 200 ]; then
+            echo "App responded with 200 OK"
+          else
+            echo "Warning: App responded with status $STATUS"
+          fi

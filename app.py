@@ -78,6 +78,9 @@ def login():
         
 @app.route("/register", methods=["GET","POST"])
 def register():
+    if current_user.is_authenticated:
+        flash(f"You are already logged in as {current_user.name}!", "info")
+        return redirect(url_for("user_dash.dash"))
     form = user_registration_form()
     if form.validate_on_submit():
         email = form.email.data

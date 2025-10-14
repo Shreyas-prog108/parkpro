@@ -27,6 +27,12 @@ app.register_blueprint(user_dash)
 app.register_blueprint(admin_api, url_prefix='/admin')
 app.register_blueprint(user_api, url_prefix='/user')
 
+@app.before_request
+def redirect_to_custom_domain():
+    host = request.headers.get("Host", "")
+    if host == "parkpro-backend.onrender.com":
+        return redirect(f"https://parkpro.shreyaspandey.me{request.path}", code=301)
+
 # Security headers
 @app.after_request
 def add_security_headers(response):

@@ -1,7 +1,7 @@
 services:
   - type: web
     name: parkpro
-    env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: bash start.sh
     envVars:
